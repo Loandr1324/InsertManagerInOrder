@@ -30,13 +30,3 @@ AUTH_API = {
 ------------
 Для логирования используется библиотека [logguru](https://loguru.readthedocs.io/en/stable/overview.html)
 Наименование лог файла прописывается в файле config.py в переменную `FILE_NAME_CONFIG`
-
-В версии библиотеки aioabcpapi 2.0.9, для возможности удаления заметки в заказе, требуется внести изменения в файл бибилотеки:
-```python
-ioabcpapi\utils\payload.py
-# Строка 95: 
-data['order[notes][0][value]'] = None
-# Заменить на:
-data['order[notes][0][value]'] = ''
-```
-В следующих релизах авторы планируют исправить.
