@@ -68,7 +68,7 @@ async def main():
     2. Находим заказы, в которых необходимо проставить менеджера.
     3. Устанавливаем менеджера согласно задания и удаляем первый комментарий.
     """
-
+    logger.info(f"... Запуск программы")
     # 1. Получаем список заказов начиная с указанной в ТЗ даты
     time_start = (dt.datetime.now() - dt.timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
     list_orders = await get_list_orders(time_start)
@@ -95,6 +95,7 @@ async def main():
             #     number=number, manager_id=id_manager, del_note=id_note
             # )
             # logger.info(f"Результат внесения изменения в заказ {result=}")
+    logger.info(f"... Программа завершена")
     await api._base.close()  # В будущих релизах библиотеки планируется автоматически закрывать сессию
 
 if __name__ == '__main__':
