@@ -91,10 +91,10 @@ async def main():
 
             logger.info(f"Начинаем вносить изменения с параметрами {number=}, {id_manager=}, {id_note=}")
             # Изменяем данные в заказе на платформе abcp
-            # result = await api.cp.admin.orders.create_or_edit_order(
-            #     number=number, manager_id=id_manager, del_note=id_note
-            # )
-            # logger.info(f"Результат внесения изменения в заказ {result=}")
+            result = await api.cp.admin.orders.create_or_edit_order(
+                number=number, manager_id=id_manager, del_note=id_note
+            )
+            logger.info(f"Результат внесения изменения в заказ {result=}")
     logger.info(f"... Программа завершена")
     await api._base.close()  # В будущих релизах библиотеки планируется автоматически закрывать сессию
 
