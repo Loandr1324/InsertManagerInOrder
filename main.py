@@ -20,7 +20,7 @@
 import datetime as dt
 import asyncio
 from aioabcpapi import Abcp
-from config import AUTH_API, FILE_NAME_CONFIG
+from config import AUTH_API, FILE_NAME_CONFIG, FRANCHISES
 from loguru import logger
 
 # Задаём параметры логирования
@@ -80,11 +80,13 @@ async def main():
     # 2. Фильтруем согласно ТЗ полученный список заказов
     filter_orders = list(filter(lambda v: v['managerId'] == '0' and 'Сотрудник' not in v['userName'], list_orders))
 
+    # 2.1. Доработка 15.04.2024г. Фильтруем заказы по списку франчайзи FRANCHISES с неустановленным менеджером
+    filter_orders_franch = list(filter(lambda v: v['managerId'] == '0' and v['userCode'] in FRANCHISES, list_orders))
+
     # Дальнейшую работу выполняем, если отфильтрованный список не пустой.
     # 3. Устанавливаем менеджера
     if filter_orders:
         for i in filter_orders:
-            print(i)
             logger.info(f"Получили заказ для внесения изменений {i['managerId']=} и {i['userName']}")
             logger.info(f"Все данные по заказу {i}")
             # Получаем необходимые данные для изменения заказа
@@ -99,6 +101,20 @@ async def main():
                 number=number, manager_id=id_manager, del_note=id_note
             )
             logger.info(f"Результат внесения изменения в заказ {result=}")
+
+    # 3.1. Доработка 15.04.2024г. подстановка менеджера в заказы франчайзи
+    if filter_orders_franch:
+        for order in filter_orders_franch:
+            logger.info(f"Получили заказ франчайзи для внесения изменений {order['managerId']=} и {order['userName']=}")
+            logger.info(f"Все данные по заказу {order}")
+            id_manager = FRANCHISES[order['userCode']]
+            number = order['number']
+            # Изменяем данные в заказе на платформе abcp
+            result = await api.cp.admin.orders.create_or_edit_order(
+                number=number, manager_id=id_manager
+            )
+            logger.info(f"Результат внесения изменения в заказ франчайзи {result=}")
+
     logger.info(f"... Программа завершена")
     await api._base.close()  # В будущих релизах библиотеки планируется автоматически закрывать сессию
 
