@@ -30,7 +30,6 @@ logger.add(FILE_NAME_CONFIG,
            rotation="1 month",
            compression="zip")
 
-
 host, login, password = AUTH_API['HOST_API'], AUTH_API['USER_API'], AUTH_API['PASSWORD_API']
 api = Abcp(host, login, password)
 
@@ -78,7 +77,10 @@ async def main():
     list_orders = await get_list_orders(time_start)
 
     # 2. Фильтруем согласно ТЗ полученный список заказов
-    filter_orders = list(filter(lambda v: v['managerId'] == '0' and 'Сотрудник' not in v['userName'], list_orders))
+    filter_orders = list(
+        filter(lambda v: v['managerId'] == '0' and 'Сотрудник' not in v['userName'] and v['userCode'] not in FRANCHISES,
+               list_orders)
+    )
 
     # 2.1. Доработка 15.04.2024г. Фильтруем заказы по списку франчайзи FRANCHISES с неустановленным менеджером
     filter_orders_franch = list(filter(lambda v: v['managerId'] == '0' and v['userCode'] in FRANCHISES, list_orders))
@@ -117,6 +119,7 @@ async def main():
 
     logger.info(f"... Программа завершена")
     await api._base.close()  # В будущих релизах библиотеки планируется автоматически закрывать сессию
+
 
 if __name__ == '__main__':
     asyncio.run(main())
