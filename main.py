@@ -15,6 +15,7 @@
 # содержащую текст «Номер исходного заказа»
 # 3.2. Если поле «Заметка к заказу» ('notes’) НЕ содержит «Номер исходного заказа»,
 # то установить поле «Менеджер» = сотрудник «0 Менеджер не определен» (ID: 25191325)
+# 3.3. Доработка 24.05.2024г. Если заметка пустая или её нет, то пропускаем данный заказ.
 # 4. Частота запуска скрипта: 1 раз в час в интервале с 8:00 до 19:00
 
 import datetime as dt
@@ -92,17 +93,20 @@ async def main():
             logger.info(f"Получили заказ для внесения изменений {i['managerId']=} и {i['userName']}")
             logger.info(f"Все данные по заказу {i}")
             # Получаем необходимые данные для изменения заказа
-            id_manager = await get_id_manager(i['notes'][0])
-            # Убираем первую заметку
-            id_note = i['notes'][0]['id']
-            number = i['number']
+            notes = i.get('notes') if i.get('notes') else None
+            # 3.3. Доработка 24.05.2024г. Если заметки нет или она пустая, то пропускаем данный заказ
+            if notes:
+                id_manager = await get_id_manager(notes[0])
+                # Выбираем первую заметку
+                id_note = i['notes'][0]['id']
+                number = i['number']
 
-            logger.info(f"Начинаем вносить изменения с параметрами {number=}, {id_manager=}, {id_note=}")
-            # Изменяем данные в заказе на платформе abcp
-            result = await api.cp.admin.orders.create_or_edit_order(
-                number=number, manager_id=id_manager, del_note=id_note
-            )
-            logger.info(f"Результат внесения изменения в заказ {result=}")
+                logger.info(f"Начинаем вносить изменения с параметрами {number=}, {id_manager=}, {id_note=}")
+                # Изменяем данные в заказе на платформе abcp
+                result = await api.cp.admin.orders.create_or_edit_order(
+                    number=number, manager_id=id_manager, del_note=id_note
+                )
+                logger.info(f"Результат внесения изменения в заказ {result=}")
 
     # 3.1. Доработка 15.04.2024г. подстановка менеджера в заказы франчайзи
     if filter_orders_franch:
