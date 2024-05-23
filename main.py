@@ -107,6 +107,8 @@ async def main():
                     number=number, manager_id=id_manager, del_note=id_note
                 )
                 logger.info(f"Результат внесения изменения в заказ {result=}")
+            else:
+                logger.info(f"Нет заметки в заказе. Пропускаем заказ {i['number']=}")
 
     # 3.1. Доработка 15.04.2024г. подстановка менеджера в заказы франчайзи
     if filter_orders_franch:
