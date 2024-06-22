@@ -21,7 +21,8 @@
 import datetime as dt
 import asyncio
 from aioabcpapi import Abcp
-from config import AUTH_API, FILE_NAME_CONFIG, FRANCHISES
+from config import AUTH_API, FILE_NAME_CONFIG
+from google_table.google_tb_work import WorkGoogle
 from loguru import logger
 
 # Задаём параметры логирования
@@ -65,6 +66,14 @@ async def get_id_manager(note):
     return id_manager
 
 
+def get_dict_franchises():
+    """
+    Получаем список соответсвия Франчайзи.
+    :return:
+    """
+    wk_g = WorkGoogle()
+    return wk_g.get_franchises()
+
 async def main():
     """
     Весь рабочий процесс программы по подстановке менеджера в заказы без менеджера.
@@ -77,14 +86,17 @@ async def main():
     time_start = (dt.datetime.now() - dt.timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S")
     list_orders = await get_list_orders(time_start)
 
+    # 1.1. Доработка 22.06.2024г. Получаем словарь Франчайзи из Google таблицы
+    franchises = get_dict_franchises()
+
     # 2. Фильтруем согласно ТЗ полученный список заказов
     filter_orders = list(
-        filter(lambda v: v['managerId'] == '0' and 'Сотрудник' not in v['userName'] and v['userCode'] not in FRANCHISES,
+        filter(lambda v: v['managerId'] == '0' and 'Сотрудник' not in v['userName'] and v['userCode'] not in franchises,
                list_orders)
     )
 
-    # 2.1. Доработка 15.04.2024г. Фильтруем заказы по списку франчайзи FRANCHISES с неустановленным менеджером
-    filter_orders_franch = list(filter(lambda v: v['managerId'] == '0' and v['userCode'] in FRANCHISES, list_orders))
+    # 2.1. Доработка 15.04.2024г. Фильтруем заказы по списку франчайзи franchises с неустановленным менеджером
+    filter_orders_franch = list(filter(lambda v: v['managerId'] == '0' and v['userCode'] in franchises, list_orders))
 
     # Дальнейшую работу выполняем, если отфильтрованный список не пустой.
     # 3. Устанавливаем менеджера
@@ -115,7 +127,7 @@ async def main():
         for order in filter_orders_franch:
             logger.info(f"Получили заказ франчайзи для внесения изменений {order['managerId']=} и {order['userName']=}")
             logger.info(f"Все данные по заказу {order}")
-            id_manager = FRANCHISES[order['userCode']]
+            id_manager = franchises[order['userCode']]
             number = order['number']
             # Изменяем данные в заказе на платформе abcp
             result = await api.cp.admin.orders.create_or_edit_order(
