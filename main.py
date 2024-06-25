@@ -74,6 +74,7 @@ def get_dict_franchises():
     wk_g = WorkGoogle()
     return wk_g.get_franchises()
 
+
 async def main():
     """
     Весь рабочий процесс программы по подстановке менеджера в заказы без менеджера.
@@ -88,6 +89,7 @@ async def main():
 
     # 1.1. Доработка 22.06.2024г. Получаем словарь Франчайзи из Google таблицы
     franchises = get_dict_franchises()
+    logger.warning(f"Получили список франчайзи {franchises=}")
 
     # 2. Фильтруем согласно ТЗ полученный список заказов
     filter_orders = list(
