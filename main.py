@@ -92,13 +92,18 @@ async def main():
     # logger.debug(f"Получили список франчайзи {franchises=}")
 
     # 2. Фильтруем согласно ТЗ полученный список заказов
-    filter_orders = list(
-        filter(lambda v: v['managerId'] == '0' and 'Сотрудник' not in v['userName'] and v['userCode'] not in franchises,
-               list_orders)
-    )
+    filter_orders = list(filter(
+            lambda v:
+            v['managerId'] == '0'
+            and 'Сотрудник' not in v['userName']
+            and ((v['userCode'] not in franchises) if v['userCode'] else True),
+            list_orders
+    ))
 
     # 2.1. Доработка 15.04.2024г. Фильтруем заказы по списку франчайзи franchises с неустановленным менеджером
-    filter_orders_franch = list(filter(lambda v: v['managerId'] == '0' and v['userCode'] in franchises, list_orders))
+    filter_orders_franch = list(filter(
+        lambda v: v['managerId'] == '0' and ((v['userCode'] in franchises) if v['userCode'] else False), list_orders
+    ))
 
     # Дальнейшую работу выполняем, если отфильтрованный список не пустой.
     # 3. Устанавливаем менеджера
