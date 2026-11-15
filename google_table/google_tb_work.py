@@ -22,6 +22,7 @@ class RWGoogle:
         self._credentials._client_id = self.client_id
         self._credentials._client_secret = self.client_secret
         self._gc = gspread.authorize(self._credentials)
+        self._gc.set_timeout(20)
         self.key_wb = AUTH_GOOGLE['KEY_WORKBOOK']
 
     def read_sheets(self) -> list[str]:
@@ -58,13 +59,7 @@ class RWGoogle:
             после `/d/` и перед `/edit` в URL-адресе таблицы.
         :return: List[List[str].
         """
-        sheet = []
-        try:
-            sheet = self._gc.open_by_key(self.key_wb).get_worksheet(worksheet_id)
-        except gspread.exceptions.APIError as e:
-            logger.error(f"Ошибка при получении списка настроек: {e}")
-        except Exception as e:
-            logger.error(f"Ошибка при получении списка имён страниц: {e}")
+        sheet = self._gc.open_by_key(self.key_wb).get_worksheet(worksheet_id)
         return sheet.get_all_values()
 
     def save_cell(self, worksheet_id: int, row: int, col: int, value: str):

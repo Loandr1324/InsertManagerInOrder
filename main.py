@@ -20,6 +20,9 @@
 
 import datetime as dt
 import asyncio
+import requests
+import gspread
+from google.auth.exceptions import TransportError
 from aioabcpapi import Abcp
 from config import AUTH_API, FILE_NAME_CONFIG
 from google_table.google_tb_work import WorkGoogle
@@ -88,7 +91,16 @@ async def main():
     list_orders = await get_list_orders(time_start)
 
     # 1.1. Доработка 22.06.2024г. Получаем словарь Франчайзи из Google таблицы
-    franchises = get_dict_franchises()
+    try:
+        franchises = get_dict_franchises()
+    except (
+        gspread.exceptions.APIError,
+        requests.exceptions.RequestException,
+        TransportError,
+    ):
+        logger.exception("Ошибка обращения к Google Sheets; текущий запуск пропущен")
+        await api._base.close()
+        return
     # logger.debug(f"Получили список франчайзи {franchises=}")
 
     # 2. Фильтруем согласно ТЗ полученный список заказов
